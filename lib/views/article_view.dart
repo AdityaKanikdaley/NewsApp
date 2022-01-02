@@ -1,9 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ArticleView extends StatefulWidget {
-
   const ArticleView({Key key, this.blogUrl}) : super(key: key);
   final String blogUrl;
 
@@ -12,8 +12,26 @@ class ArticleView extends StatefulWidget {
 }
 
 class _ArticleViewState extends State<ArticleView> {
+  final Completer<WebViewController> _completer =
+      Completer<WebViewController>();
 
-  final Completer<WebViewController> _completer = Completer<WebViewController>();
+  bool _loading = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _delay();
+  }
+
+  _delay() async {
+    await Future.delayed(const Duration(milliseconds: 1000), () {
+      setState(() {
+        _loading = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,8 +40,14 @@ class _ArticleViewState extends State<ArticleView> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const <Widget>[
-            Text("Flutter" , style: TextStyle(color: Colors.black),),
-            Text("News", style: TextStyle(color: Colors.black),)
+            Text(
+              "Flutter",
+              style: TextStyle(color: Colors.white),
+            ),
+            Text(
+              "News",
+              style: TextStyle(color: Colors.blue),
+            )
           ],
         ),
         actions: [
@@ -38,18 +62,20 @@ class _ArticleViewState extends State<ArticleView> {
         elevation: 0.0,
         centerTitle: true,
       ),
-
-      body: Container(
-        // use newmorphic effects
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: WebView(
-          initialUrl: widget.blogUrl,
-          onWebViewCreated: ((WebViewController webViewController){
-            _completer.complete(webViewController);
-          }),
-        ),
-      ),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : SizedBox(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: WebView(
+                initialUrl: widget.blogUrl,
+                onWebViewCreated: ((WebViewController webViewController) {
+                  _completer.complete(webViewController);
+                }),
+              ),
+            ),
     );
   }
 }
