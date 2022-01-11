@@ -6,6 +6,7 @@ import 'package:news_app/models/article_model.dart';
 import 'package:news_app/models/category_model.dart';
 import 'package:news_app/views/article_view.dart';
 import 'package:news_app/views/category_news.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 class Home extends StatefulWidget {
   const Home({Key key}) : super(key: key);
@@ -18,13 +19,62 @@ class _HomeState extends State<Home> {
   List<CategoryModel> categories = <CategoryModel>[];
   List<ArticleModel> articles = <ArticleModel>[];
   bool _loading = true;
+  Widget _netErrorHandler = CircularProgressIndicator();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     categories = getCategories();
+
+    checkInternet();
     getNews();
+  }
+
+  Future checkInternet() async {
+    if (await DataConnectionChecker().hasConnection) {
+      print(
+          "Network status: ${await DataConnectionChecker().connectionStatus}");
+      setWaiting();
+    } else {
+      print(
+          "Network status: ${await DataConnectionChecker().connectionStatus}");
+      setEmpty();
+    }
+  }
+
+  setEmpty() async {
+    setState(() {
+      _netErrorHandler = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image(image: AssetImage("assets/error_Image.jpg"), width: 60),
+            SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Text(
+                  "Network Error, please check your Internet connection and try again !",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54, fontSize: 20)),
+            ),
+            SizedBox(height: 5),
+            ElevatedButton(
+                autofocus: true,
+                onPressed: () => Navigator.pushReplacement(
+                    context, MaterialPageRoute(builder: (context) => Home())),
+                child: Text("Try Again"))
+          ],
+        ),
+      );
+    });
+  }
+
+  setWaiting() async {
+    setState(() {
+      _netErrorHandler =
+          Center(child: CircularProgressIndicator(color: Colors.black54));
+    });
   }
 
   getNews() async {
@@ -59,9 +109,7 @@ class _HomeState extends State<Home> {
       ),
       backgroundColor: Colors.grey[300],
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? _netErrorHandler
           : SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -150,6 +198,15 @@ class CategoryTile extends StatelessWidget {
                     width: 120,
                     height: 60,
                     fit: BoxFit.cover,
+                    progressIndicatorBuilder:
+                        (context, url, downloadProgress) => Center(
+                            child: CircularProgressIndicator(
+                                value: downloadProgress.progress,
+                                color: Colors.black54)),
+                    errorWidget: (context, url, error) => Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.error, color: Colors.amber),
+                    ),
                   )),
               Container(
                 alignment: Alignment.center,
@@ -218,9 +275,22 @@ class BlogTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
                   imageUrl,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.black54),
+                      ),
+                    );
+                  },
                   errorBuilder: (BuildContext context, Object exception,
                       StackTrace stackTrace) {
-                    return const Text('Error loading Network Image...');
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: const Text('Error loading Image!!',
+                          style: TextStyle(color: Colors.black)),
+                    );
                   },
                 )),
             const SizedBox(

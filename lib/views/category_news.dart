@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:news_app/helper/news.dart';
 import 'package:news_app/models/article_model.dart';
 import 'package:news_app/views/article_view.dart';
+import 'package:data_connection_checker/data_connection_checker.dart';
 
 class CategoryNews extends StatefulWidget {
   const CategoryNews({Key key, this.category}) : super(key: key);
@@ -14,12 +15,63 @@ class CategoryNews extends StatefulWidget {
 class _CategoryNewsState extends State<CategoryNews> {
   List<ArticleModel> articles = <ArticleModel>[];
   bool _loading = true;
+  Widget _netErrorHandler = CircularProgressIndicator();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
+    checkInternet();
     getCategoryNews();
+  }
+
+  Future checkInternet() async {
+    if (await DataConnectionChecker().hasConnection) {
+      print(
+          "Network status: ${await DataConnectionChecker().connectionStatus}");
+      setWaiting();
+    } else {
+      print(
+          "Network status: ${await DataConnectionChecker().connectionStatus}");
+      setEmpty();
+    }
+  }
+
+  setEmpty() async {
+    setState(() {
+      _netErrorHandler = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image(image: AssetImage("assets/error_Image.jpg"), width: 60),
+            SizedBox(height: 5),
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Text(
+                  "Network Error, please check your Internet connection and try again !",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54, fontSize: 20)),
+            ),
+            ElevatedButton(
+                autofocus: true,
+                onPressed: () => Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            CategoryNews(category: widget.category))),
+                child: Text("Try Again"))
+          ],
+        ),
+      );
+    });
+  }
+
+  setWaiting() async {
+    setState(() {
+      _netErrorHandler =
+          Center(child: CircularProgressIndicator(color: Colors.black54));
+    });
   }
 
   getCategoryNews() async {
@@ -62,14 +114,13 @@ class _CategoryNewsState extends State<CategoryNews> {
       ),
       backgroundColor: Colors.grey[300],
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? _netErrorHandler
           : SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
+                    // heading
                     Container(
                       padding: const EdgeInsets.fromLTRB(10, 20, 10, 0),
                       child: Text(
@@ -147,11 +198,20 @@ class BlogTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 child: Image.network(
                   imageUrl,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Center(
+                        child: CircularProgressIndicator(color: Colors.black54),
+                      ),
+                    );
+                  },
                   errorBuilder: (BuildContext context, Object exception,
                       StackTrace stackTrace) {
                     return const Padding(
                       padding: EdgeInsets.all(4.0),
-                      child: Text('Error loading Network Image...',
+                      child: Text('Error loading Image!!',
                           style: TextStyle(color: Colors.black)),
                     );
                   },

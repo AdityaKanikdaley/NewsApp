@@ -64,7 +64,7 @@ class _ArticleViewState extends State<ArticleView> {
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(color: Colors.white),
             )
           : SizedBox(
               height: MediaQuery.of(context).size.height,
