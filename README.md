@@ -13,6 +13,8 @@ A Flutter project to display news (India) in different categories (Business, Ent
 ### Demo: Without Internet (Network error handling)
 <img src="https://github.com/AdityaKanikdaley/NewsApp/blob/master/git_IMG/demo_2.gif" width="200" height="400" />
 
+Handling network issues with [data_connection_checker](https://pub.dev/packages/data_connection_checker/versions/0.3.4) package.
+
 ### Created & Maintained By:
 [Aditya Kanikdaley](https://github.com/AdityaKanikdaley) | [LinkedIn](https://www.linkedin.com/in/aditya-kanikdaley-471452190/)
 
