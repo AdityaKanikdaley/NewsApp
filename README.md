@@ -17,4 +17,3 @@ Handling network issues with [data_connection_checker](https://pub.dev/packages/
 
 ### Created & Maintained By:
 [Aditya Kanikdaley](https://github.com/AdityaKanikdaley) | [LinkedIn](https://www.linkedin.com/in/aditya-kanikdaley-471452190/)
-
